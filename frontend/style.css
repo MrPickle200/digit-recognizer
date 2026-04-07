@@ -1,0 +1,33 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    font-family: sans-serif;
+}
+
+.container {
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+#paintCanvas {
+    border: 2px solid #333;
+    background-color: #fff; /* Nền trắng rành mạch */
+    cursor: crosshair; /* Đổi trỏ chuột thành dấu thập để dễ nhắm */
+}
+
+.controls {
+    margin-top: 15px;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 0 5px;
+    cursor: pointer;
+}
