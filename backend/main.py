@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from model_handler import preprocess_image, predict_digit_from_array # Import hàm vừa viết
+from backend.model_handler import preprocess_image, predict_digit_from_array # Import hàm vừa viết
 import uvicorn
 
 app = FastAPI()
