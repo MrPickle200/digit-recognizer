@@ -6,7 +6,7 @@ const resultSpan = document.getElementById('digit');
 const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
 const BACKEND_URL = isLocal 
     ? 'http://127.0.0.1:8000' 
-    : 'https://digit-recognizer.onrender.com';
+    : 'https://digit-recognizer-wd8z.onrender.com/';
 
 // Cài đặt bút vẽ mô phỏng bút dạ nét to
 ctx.lineWidth = 15;
