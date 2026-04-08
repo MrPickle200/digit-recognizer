@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from backend.model_handler import preprocess_image, predict_digit_from_array # Import hàm vừa viết
+from backend.model_handler import preprocess_image, predict_digit_from_array
 import uvicorn
 
 app = FastAPI()
@@ -27,9 +27,9 @@ async def predict_digit(file: UploadFile = File(...)):
             }
         
         digit, confidence = predict_digit_from_array(img_array)
-        if float(confidence) < 0.6:
+        if float(confidence) < 0.4:
             return {
-                "message" : "Hình vẽ quấ xấu họăc không hợp lệ"
+                "message" : f"Hình vẽ quấ xấu họăc không hợp lệ. Độ tự tin: {float(confidence)}"
                 }
 
         return {

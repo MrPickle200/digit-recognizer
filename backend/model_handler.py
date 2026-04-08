@@ -1,9 +1,13 @@
 import io
 import numpy as np
-from PIL import Image, ImageOps
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from PIL import Image, ImageOps
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+WEIGHTS_PATH = BASE_DIR / "weights" / "simple_cnn.pth"
 
 # Định nghĩa cấu trúc mạng (Phải khớp hoàn toàn với file weights cậu sẽ load)
 class SimpleCNN(nn.Module):
@@ -31,11 +35,11 @@ model = SimpleCNN()
 # Ở đây tôi giả định cậu đã có file 'mnist_model.pth' trong thư mục backend/weights/
 # Nếu chưa có, lát nữa tôi sẽ chỉ cách tạo nhanh
 try:
-    model.load_state_dict(torch.load("/home/daoviet/Digit_Recognizer/backend/weights/simple_cnn.pth", map_location=torch.device('cpu')))
-    print("THÔNG BÁO: Load model thành công")
+    model.load_state_dict(torch.load(WEIGHTS_PATH, map_location=torch.device('cpu')))
+    print("[THÔNG BÁO]: Load model thành công")
     model.eval() # Chuyển sang chế độ dự đoán (Inference mode)
 except FileNotFoundError:
-    print("CẢNH BÁO: Chưa tìm thấy file weights! Model sẽ trả về kết quả ngẫu nhiên.")
+    print("[CẢNH BÁO]: Chưa tìm thấy file weights! Model sẽ trả về kết quả ngẫu nhiên.")
 
 
 def preprocess_image(image_bytes: bytes):

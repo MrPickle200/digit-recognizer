@@ -6,10 +6,10 @@ const resultSpan = document.getElementById('digit');
 const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
 const BACKEND_URL = isLocal 
     ? 'http://127.0.0.1:8000' 
-    : 'https://digit-recognizer-wd8z.onrender.com/';
+    : 'https://digit-recognizer-wd8z.onrender.com';
 
 // Cài đặt bút vẽ mô phỏng bút dạ nét to
-ctx.lineWidth = 15;
+ctx.lineWidth = 10;
 ctx.lineCap = 'round'; // Nét tròn trịa, không bị gãy mép
 ctx.strokeStyle = 'black';
 
@@ -70,8 +70,7 @@ btnPredict.addEventListener('click', () => {
         formData.append('file', blob, 'digit.png'); // Key 'file' phải khớp tuyệt đối với tham số của FastAPI
 
         // Bắn request lên server
-        // chay local thi thay url bang cai nay 'http://127.0.0.1:8000'
-        fetch('${BACKEND_URL}/predict', {
+        fetch(`${BACKEND_URL}/predict`, {
             method: 'POST',
             body: formData
         })
