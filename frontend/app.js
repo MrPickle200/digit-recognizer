@@ -25,35 +25,60 @@ fillWhiteBackground();
 let isDrawing = false;
 
 // Các hàm xử lý vẽ
+function getPointerPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    let clientX = e.clientX;
+    let clientY = e.clientY;
+
+    // Nếu người dùng dùng màn hình cảm ứng, lấy tọa độ của ngón tay đầu tiên
+    if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    }
+
+    return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+    };
+}
+
+// Các hàm xử lý vẽ đã được cập nhật
 function startPosition(e) {
+    e.preventDefault(); // Chặn thêm một lớp hành vi mặc định của trình duyệt
     isDrawing = true;
     draw(e);
 }
 
-function endPosition() {
+function endPosition(e) {
+    if (e) e.preventDefault();
     isDrawing = false;
-    ctx.beginPath(); // Ngắt nét cũ để nét mới không bị dính chùm
+    ctx.beginPath(); 
 }
 
 function draw(e) {
     if (!isDrawing) return;
+    e.preventDefault(); // Giữ chặt màn hình khi ngón tay đang di chuyển
 
-    // Lấy tọa độ chuột tương đối so với bản thân thẻ canvas
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const pos = getPointerPos(e);
 
-    ctx.lineTo(x, y);
+    ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(x, y);
+    ctx.moveTo(pos.x, pos.y);
 }
 
-// Lắng nghe hành vi người dùng
+// 1. Lắng nghe sự kiện CHUỘT (Dành cho Laptop/PC)
 canvas.addEventListener('mousedown', startPosition);
 canvas.addEventListener('mouseup', endPosition);
 canvas.addEventListener('mousemove', draw);
-canvas.addEventListener('mouseout', endPosition); // Đang vẽ mà trượt chuột ra ngoài khung thì ngắt nét ngay
+canvas.addEventListener('mouseout', endPosition);
+
+// 2. Lắng nghe sự kiện CHẠM (Dành cho Điện thoại/Tablet)
+// Phải thêm cờ { passive: false } để trình duyệt cho phép dùng e.preventDefault()
+canvas.addEventListener('touchstart', startPosition, { passive: false });
+canvas.addEventListener('touchend', endPosition, { passive: false });
+canvas.addEventListener('touchmove', draw, { passive: false });
+canvas.addEventListener('touchcancel', endPosition, { passive: false });
 
 // Logic nút Xóa
 btnClear.addEventListener('click', () => {

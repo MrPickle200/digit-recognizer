@@ -20,6 +20,7 @@ body {
     border: 2px solid #333;
     background-color: #fff; /* Nền trắng rành mạch */
     cursor: crosshair; /* Đổi trỏ chuột thành dấu thập để dễ nhắm */
+    touch-action: none;
 }
 
 .controls {
