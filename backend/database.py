@@ -27,3 +27,36 @@ def save_feedback_record(img_url: str, predicted: int, actual: int, confidence: 
         "confidence": confidence
     }
     supabase.table("digit_feedback").insert(data).execute()
+
+def get_untrained_feedback(limit : int):
+    res = supabase.table("digit_feedback").select("*").eq("is_trained", False).limit(limit).execute()
+    return res.data
+
+def mark_feedback_trained(feedback_ids : list):
+    if not feedback_ids:
+        return
+    supabase.table("digit_feedback").update({"is_trained" : True}).in_("id", feedback_ids).execute()
+
+def download_latest_weights(local_path: str):
+    """Tải file trọng số mới nhất từ Supabase về máy"""
+    try:
+        with open(local_path, 'wb') as f:
+            res = supabase.storage.from_('digit-weights').download('simple_cnn.pth')
+            f.write(res)
+        print(f"[THÔNG BÁO] Đã tải trọng số mới nhất từ Supabase về {local_path}")
+    except Exception as e:
+        print(f"[LỖI] Không tìm thấy trọng số trên Supabase hoặc lỗi: {e}. Sử dụng trọng số mặc định.")
+
+def upload_weights(local_path: str):
+    """Đẩy file trọng số sau khi train lên Supabase (Ghi đè bản cũ)"""
+    try:
+        with open(local_path, 'rb') as f:
+            # Dùng file_options={"upsert": "true"} để ghi đè file cũ cùng tên
+            supabase.storage.from_('digit-weights').upload(
+                path='simple_cnn.pth',
+                file=f,
+                file_options={"x-upsert": "true", "content-type": "application/octet-stream"}
+            )
+        print("[THÔNG BÁO] Đã sao lưu trọng số mới lên Supabase Storage thành công.")
+    except Exception as e:
+        print(f"[LỖI] Lỗi khi backup trọng số: {e}")

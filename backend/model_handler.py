@@ -3,13 +3,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import requests
+from torchvision import transforms
 from PIL import Image, ImageOps
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 WEIGHTS_PATH = BASE_DIR / "weights" / "simple_cnn.pth"
 
-# Định nghĩa cấu trúc mạng (Phải khớp hoàn toàn với file weights cậu sẽ load)
 class SimpleCNN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -32,14 +33,13 @@ class SimpleCNN(nn.Module):
 
 # Khởi tạo model và load trọng số
 model = SimpleCNN()
-# Ở đây tôi giả định cậu đã có file 'mnist_model.pth' trong thư mục backend/weights/
-# Nếu chưa có, lát nữa tôi sẽ chỉ cách tạo nhanh
+
 try:
-    model.load_state_dict(torch.load(WEIGHTS_PATH, map_location=torch.device('cpu')))
-    print("[THÔNG BÁO]: Load model thành công")
-    model.eval() # Chuyển sang chế độ dự đoán (Inference mode)
-except FileNotFoundError:
-    print("[CẢNH BÁO]: Chưa tìm thấy file weights! Model sẽ trả về kết quả ngẫu nhiên.")
+    model.load_state_dict(torch.load(str(WEIGHTS_PATH), map_location= torch.device("cpu")))
+    model.eval()
+    print("[THÔNG BÁO] Load trọng số mặc định thành công")
+except:
+    print("[THÔNG BÁO] Chưa tìm thấy file weights, khởi tạo trọng số ngẫu nhiên")
 
 
 def preprocess_image(image_bytes: bytes):
@@ -60,7 +60,7 @@ def preprocess_image(image_bytes: bytes):
         
     # 4. Thu nhỏ (Resize) phần nét vẽ vừa cắt.
     # MNIST chuẩn chứa chữ số trong một khung tối đa 20x20 pixel.
-    # Ta dùng thumbnail để giữ nguyên tỷ lệ (aspect ratio) không bị méo hình.
+    # Dùng thumbnail để giữ nguyên tỷ lệ (aspect ratio) không bị méo hình.
     img.thumbnail((20, 20), Image.Resampling.LANCZOS)
     
     # 5. Căn giữa (Padding): Tạo một phông nền đen chuẩn 28x28
@@ -96,3 +96,60 @@ def predict_digit_from_array(img_array):
         confidence = probabilities[0][prediction].item()
 
     return prediction, confidence
+
+
+def fine_tune_model(feedback_data):
+    """Hàm chạy ngầm để huấn luyện lại model"""
+    global model # Sử dụng model đang load trên RAM
+    
+    # 1. Chuẩn bị dữ liệu
+    images = []
+    labels = []
+    ids = []
+    
+    transform = transforms.Compose([
+        transforms.Grayscale(num_output_channels=1),
+        transforms.Resize((28, 28)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
+    ])
+
+    for item in feedback_data:
+        try:
+            # Tải ảnh từ Supabase URL
+            response = requests.get(item['image_url'])
+            img = Image.open(io.BytesIO(response.content))
+            img_tensor = transform(img)
+            
+            images.append(img_tensor)
+            labels.append(item['actual_label'])
+            ids.append(item['id'])
+        except Exception as e:
+            print(f"Lỗi tải ảnh {item['id']}: {e}")
+            continue
+
+    if not images: return []
+
+    # Chuyển thành Batch Tensor
+    X = torch.stack(images)
+    y = torch.tensor(labels, dtype=torch.long)
+
+    # 2. Cài đặt Training
+    model.train() # Bật chế độ train
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    criterion = nn.CrossEntropyLoss()
+
+    # Chỉ chạy 2 Epochs để tiết kiệm tài nguyên
+    for _ in range(2):
+        optimizer.zero_grad()
+        outputs = model(X)
+        loss = criterion(outputs, y)
+        loss.backward()
+        optimizer.step()
+
+    # 3. Lưu model mới & Trả lại chế độ dự đoán
+    torch.save(model.state_dict(), WEIGHTS_PATH)
+    model.eval()
+    
+    print(f"[THÔNG BÁO] Đã fine-tune thành công với {len(ids)} ảnh mới.")
+    return ids
