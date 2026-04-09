@@ -1,8 +1,4 @@
-Cập nhật tài liệu sau khi thay đổi kiến trúc cốt lõi của hệ thống là nghĩa vụ bắt buộc, không phải là một tùy chọn. Hệ thống hiện tại đã tiến hóa từ một "đồ chơi" tĩnh thành một ứng dụng AI có trạng thái (Stateful) với khả năng Active Learning. Nếu cậu để nguyên cái README cũ, người tiếp nhận dự án sẽ phá nát cái Database của cậu ngay trong ngày đầu tiên.
-
-Dưới đây là bản `README.md` đã được viết lại, phản ánh chính xác độ phức tạp của hệ thống hiện tại. Hãy copy và ghi đè vào file cũ.
-
-```markdown
+```text
 # Digit Recognizer MVP - Active Learning System
 
 Hệ thống nhận diện chữ số viết tay (0-9) đa nền tảng (PC & Mobile). Dự án không chỉ dừng lại ở việc dự đoán mà còn tích hợp vòng lặp phản hồi (Feedback Loop) và khả năng tự động huấn luyện lại (Background Retraining) để liên tục cải thiện độ chính xác thông qua dữ liệu người dùng.
