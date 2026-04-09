@@ -1,4 +1,3 @@
-```text
 # Digit Recognizer MVP - Active Learning System
 
 Hệ thống nhận diện chữ số viết tay (0-9) đa nền tảng (PC & Mobile). Dự án không chỉ dừng lại ở việc dự đoán mà còn tích hợp vòng lặp phản hồi (Feedback Loop) và khả năng tự động huấn luyện lại (Background Retraining) để liên tục cải thiện độ chính xác thông qua dữ liệu người dùng.
