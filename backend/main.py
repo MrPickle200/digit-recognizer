@@ -1,10 +1,11 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from backend.model_handler import preprocess_image, predict_digit_from_array
+from backend.database import upload_feedback_image, save_feedback_record
+import uuid
 import uvicorn
 
 app = FastAPI()
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -39,6 +40,27 @@ async def predict_digit(file: UploadFile = File(...)):
         }
     except Exception as e:
         return {"error": str(e)}
+
+@app.post("/feedback")
+async def receive_feedback(
+    file: UploadFile = File(...),
+    predicted: int = Form(...),
+    actual: int = Form(...),
+    confidence: float = Form(...)
+):
+    try:
+        image_bytes = await file.read()
+        filename = f"rev_{uuid.uuid4()}.png"
+        
+        # 1. Lưu ảnh lên Storage
+        img_url = upload_feedback_image(image_bytes, filename)
+        
+        # 2. Lưu record vào Database
+        save_feedback_record(img_url, predicted, actual, confidence)
+        
+        return {"status": "success", "message": "Cảm ơn bạn đã giúp model tốt hơn!"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

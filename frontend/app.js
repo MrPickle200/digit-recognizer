@@ -87,14 +87,26 @@ btnClear.addEventListener('click', () => {
     resultSpan.innerText = '-';
 });
 
-// Logic nút Dự đoán & Nối luồng Backend
-btnPredict.addEventListener('click', () => {
-    // Đóng gói ảnh thành dạng nhị phân (Blob)
-    canvas.toBlob((blob) => {
-        const formData = new FormData();
-        formData.append('file', blob, 'digit.png'); // Key 'file' phải khớp tuyệt đối với tham số của FastAPI
+// Các biến toàn cục để lưu trữ trạng thái cho phần Feedback
+let lastImageBlob = null;
+let lastPrediction = null;
+let lastConfidence = null;
 
-        // Bắn request lên server
+const feedbackArea = document.getElementById('feedbackArea');
+const btnSendFeedback = document.getElementById('btnSendFeedback');
+
+// ---------------------------------------------------------
+// LOGIC 1: DỰ ĐOÁN (Chỉ gọi API lấy kết quả)
+// ---------------------------------------------------------
+btnPredict.addEventListener('click', () => {
+    // 1. Chuyển canvas thành blob và lưu LUÔN vào biến lastImageBlob
+    canvas.toBlob((blob) => {
+        lastImageBlob = blob; // GÁN Ở ĐÂY ĐỂ DÙNG CHO FEEDBACK
+
+        const formData = new FormData();
+        formData.append('file', blob, 'digit.png');
+
+        // Bắn request dự đoán lên server
         fetch(`${BACKEND_URL}/predict`, {
             method: 'POST',
             body: formData
@@ -102,12 +114,67 @@ btnPredict.addEventListener('click', () => {
         .then(response => response.json())
         .then(data => {
             console.log("Server trả về:", data);
-            // Tạm thời hiển thị tên file nhận được từ backend để test luồng
+            
+            // Xử lý lỗi từ server (ví dụ: canvas trống, ảnh quá xấu)
+            if (data.error || data.prediction === undefined) {
+                resultSpan.innerText = data.message || data.error;
+                feedbackArea.style.display = 'none'; // Ẩn form feedback đi nếu lỗi
+                return; // Dừng luôn, không làm gì tiếp
+            }
+
+            // Nếu thành công: Hiển thị kết quả
             resultSpan.innerText = data.message; 
+            
+            // LƯU LẠI DATA ĐỂ DÀNH CHO FEEDBACK
+            lastPrediction = data.prediction;
+            lastConfidence = data.confidence;
+            
+            // Hiển thị khu vực hỏi người dùng đúng hay sai
+            feedbackArea.style.display = 'block';
         })
         .catch(error => {
             console.error('Lỗi khi gọi API:', error);
             resultSpan.innerText = "Lỗi kết nối Backend!";
+            feedbackArea.style.display = 'none';
         });
     }, 'image/png');
+});
+
+// ---------------------------------------------------------
+// LOGIC 2: GỬI FEEDBACK (Viết TÁCH RỜI hoàn toàn ra ngoài)
+// ---------------------------------------------------------
+btnSendFeedback.addEventListener('click', () => {
+    // Rào chắn bảo vệ: Tránh việc bấm linh tinh khi chưa có data
+    if (!lastImageBlob || lastPrediction === null) {
+        alert("Chưa có dữ liệu dự đoán để phản hồi!");
+        return;
+    }
+
+    const actual = document.getElementById('correctLabel').value;
+    
+    // Đóng gói data gửi đi
+    const formData = new FormData();
+    formData.append('file', lastImageBlob); 
+    formData.append('predicted', lastPrediction);
+    formData.append('actual', actual);
+    formData.append('confidence', lastConfidence);
+
+    // Gửi Feedback
+    fetch(`${BACKEND_URL}/feedback`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.status === 'success') {
+            alert("Cảm ơn bạn! Dữ liệu đã được lưu để huấn luyện lại.");
+            feedbackArea.style.display = 'none'; // Ẩn đi cho gọn
+        } else {
+            alert("Lỗi: " + res.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Lỗi khi gửi phản hồi!");
+    });
 });
