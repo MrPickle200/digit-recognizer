@@ -26,16 +26,20 @@ def save_feedback_record(img_url: str, predicted: int, actual: int, confidence: 
         "actual_label": actual,
         "confidence": confidence
     }
-    supabase.table("digit_feedback").insert(data).execute()
+    supabase.table("digit_feedbacks").insert(data).execute()
 
-def get_untrained_feedback(limit : int):
-    res = supabase.table("digit_feedback").select("*").eq("is_trained", False).limit(limit).execute()
+def get_untrained_feedback(limit : int = 10):
+    res = supabase.table("digit_feedbacks").select("*").eq("status", "approved").limit(limit).execute()
     return res.data
 
 def mark_feedback_trained(feedback_ids : list):
     if not feedback_ids:
         return
-    supabase.table("digit_feedback").update({"is_trained" : True}).in_("id", feedback_ids).execute()
+    supabase.table("digit_feedbacks").update({"status" : "trained"}).in_("id", feedback_ids).execute()
+
+def get_pending_feedbacks_for_admin(limit : int = 50):
+    res = supabase.table("digit_feedbacks").select("*").eq("status", "pending").order("created_at", desc = True).limit(limit).execute()
+    return res.data if res.data is not None else [] 
 
 def download_latest_weights(local_path: str):
     """Tải file trọng số mới nhất từ Supabase về máy"""

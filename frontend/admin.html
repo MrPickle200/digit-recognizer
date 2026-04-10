@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AI Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .canvas-preview { background-color: black; border: 1px solid #ccc; width: 56px; height: 56px; }
+        #dashboardArea { display: none; } /* Ẩn mặc định */
+    </style>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    
+    <div id="loginArea" class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white text-center">
+                    <h4>Admin Login</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label>Username</label>
+                        <input type="text" id="username" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>Password</label>
+                        <input type="password" id="password" class="form-control">
+                    </div>
+                    <button id="btnLogin" class="btn btn-primary w-100">Đăng nhập</button>
+                    <div id="loginError" class="text-danger mt-2 text-center" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboardArea">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Dữ liệu chờ Kiểm duyệt</h2>
+            <button id="btnLogout" class="btn btn-outline-danger">Đăng xuất</button>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-body">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Hình ảnh</th>
+                            <th>AI Đoán</th>
+                            <th>User Sửa</th>
+                            <th>Độ Tự Tin</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

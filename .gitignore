@@ -5,5 +5,5 @@ venv/
 env/
 .DS_Store
 *.sqlite3
+auth.txt
 weights/*.h5
-
